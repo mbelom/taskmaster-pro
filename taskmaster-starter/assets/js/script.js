@@ -50,11 +50,11 @@ var saveTasks = function () {
 var auditTask = function (taskEl) {
 	// get date from task element
 	var date = $(taskEl).find("span").text().trim();
-  console.log(date);
+  
 
 	// convert to moment object at 5:00pm
 	var time = moment(date, "L").set("hour", 17);
-  console.log(time);
+  
 	// remove any old classes from element
 	$(taskEl).removeClass("list-group-item-warning list-group-item-danger");
 
@@ -72,17 +72,21 @@ $(".card .list-group").sortable({
 	scroll: false,
 	tolerance: "pointer",
 	helper: "clone",
-	activate: function (event) {
-		console.log("activate", this);
+	activate: function (event, ui) {
+    $(this).addClass('dropover');
+    $("#bottom-trash").addClass('bottom-trash-drag');
 	},
-	deactivate: function (event) {
-		console.log("deactivate", this);
+	deactivate: function (event, ui) {
+    $(this).removeClass('dropover');
+    $("#bottom-trash").removeClass('bottom-trash-drag');
 	},
 	over: function (event) {
-		console.log("over", event.target);
+    $(event.target).addClass('dropover-active');
+    
 	},
-	out: function (event) {
-		console.log("out", event.target);
+	out: function (event) 
+    $(event.target).removeClass('dropover-active');
+    
 	},
 	update: function (event) {
 		// array to store the task data in
@@ -105,10 +109,7 @@ $(".card .list-group").sortable({
 		// update array on tasks object and save
 		tasks[arrName] = tempArr;
 		saveTasks();
-	},
-	stop: function (event) {
-		$(this).removeClass("dropover");
-	},
+	}
 });
 
 // trash icon can be dropped onto
@@ -117,14 +118,17 @@ $("#trash").droppable({
 	tolerance: "touch",
 	drop: function (event, ui) {
   // remove dragged element from the dom
-		console.log("drop");
+  $(".bottom-trash").removeClass("bottom-trash-active");
 		ui.draggable.remove();
+    $("#bottom-trash").removeClass('bottom-trash-active');
 	},
 	over: function (event, ui) {
 		console.log(ui);
+    $("#bottom-trash").addClass('bottom-trash-active');
 	},
 	out: function (event, ui) {
 		console.log(ui);
+    $("#bottom-trash").removeClass('bottom-trash-active');
 	},
 });
 
@@ -262,5 +266,9 @@ $("#remove-tasks").on("click", function () {
 loadTasks();
 
 
-
-
+// audit task due dates every 30 minutes
+setInterval(function() {
+  $(".card .list-group-item").each(function() {
+    auditTask($(this));
+  });
+}, 1800000);
